@@ -38,11 +38,22 @@ changed.
 4. Open a pull request. Say which mail the template is for (sender, subject,
    language) — in words, not as an attachment.
 
+Know before you start: the app picks a v1 template through a detection list
+compiled into TravStats, not through the template's `from` and `subject`
+fields (see [README.md](README.md#which-mail-gets-which-template)). Improving
+one of the airlines already listed works through this repository alone. A
+template for a new airline also needs a detection rule in the app, so open an
+issue there as well. [`flight/README.md`](flight/README.md) lists layouts that
+v1 cannot read at all (two-digit years, city names instead of airport codes).
+
 ## 5. Hotels, cruises, trains — format v2
 
 The `flight/`, `lodging/`, `cruise/` and `rail/` folders are for the v2 format,
 one envelope for every domain with its test cases built in. No TravStats release
-reads them yet. Until one does, please open an issue on
+reads them yet. What is there now is a preview: `lodging/` holds the app's
+built-in hotel templates, exported by `scripts/export-lodging.ts` (refresh them
+with the script, never by hand), and `rail/db.json` is a draft of the envelope
+itself. Until one does, please open an issue on
 [TravStats](https://github.com/Abrechen2/TravStats/issues) describing the
 confirmation you would like read, rather than a pull request here.
 

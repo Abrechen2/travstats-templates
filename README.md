@@ -14,17 +14,18 @@ instances that already sync from here keep receiving updates.
 templates/          airline templates, format v1 — what TravStats instances sync today
   index.json        registry of all v1 templates with versions
   LH.json, EW.json, FR.json, LX.json, OS.json, SN.json, U2.json, W6.json, LH-old.json
-flight/             reserved for the v2 template format (one envelope for every domain)
-lodging/            reserved for v2
-cruise/             reserved for v2
-rail/               reserved for v2
+flight/             v2, empty: airline templates stay in templates/ until v2 ships
+lodging/            v2 preview: koa, hilton, travelclick, check24, accor — exported from the app
+cruise/             v2, empty: AIDA and TUI are TypeScript readers inside the app
+rail/               v2 draft: db.json (Deutsche Bahn), the first file in the v2 envelope
+scripts/            authoring tools (export-lodging.ts); never needed at runtime
 CONTRIBUTING.md     how to add or change a template
 ```
 
-The four domain folders hold only a README for now. No TravStats release reads them
-yet; they fill once the app ships the v2 loader, which validates every
-template against its own test cases before it is used. Until then, airline
-templates go into `templates/` in the v1 format below.
+No TravStats release reads the four domain folders yet. They fill once the app
+ships the v2 loader, which validates every template against its own test cases
+before it is used. Each folder's README says what is in it and why. Until then,
+airline templates go into `templates/` in the v1 format below.
 
 ## Template format (v1, airlines)
 
@@ -80,12 +81,26 @@ Each template is a JSON file with this structure:
 | `airline` | Full airline name |
 | `iata` | Airline IATA code (unique key) |
 | `version` | Version string `YYYY-MM` — bump when changing patterns |
-| `from` | Sender domain(s) to match (e.g. `@lufthansa.com`) |
-| `subject` | Subject line keywords to match |
+| `from` | Sender domain(s) to match (e.g. `@lufthansa.com`) — documentation only, see below |
+| `subject` | Subject line keywords to match — documentation only, see below |
 | `selectors` | CSS selectors for HTML emails (cheerio) |
 | `textPatterns` | Regex patterns for plain-text emails (fallback) |
 | `transforms` | Value transforms: `trim`, `uppercase`, `lowercase`, `removeSpaces`, `stripNonAlpha`, `extractIata`, `extractFlightNumber`, `parseIso` |
 | `testCases` | Test cases for validation |
+
+### Which mail gets which template
+
+Current TravStats releases do **not** read `from` and `subject` to pick a
+template. They use a detection list compiled into the app
+(`backend/src/services/parsers/templates/detector.ts`) that maps sender domains,
+subject lines and fingerprints to an IATA key, and then take the template with
+that key. Two consequences:
+
+- A changed template for an airline already in that list reaches every
+  instance with the next daily sync.
+- A template for an airline that list does **not** name is downloaded but
+  never used. A new airline needs a detection rule in the app as well — open an
+  issue on [TravStats](https://github.com/Abrechen2/TravStats/issues).
 
 ### textPatterns
 
