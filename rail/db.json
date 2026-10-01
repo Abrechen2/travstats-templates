@@ -1,0 +1,91 @@
+{
+  "$draft": "DRAFT for the v2 envelope (TravStats parser-system design, section 5.1). No TravStats release reads it, and no engine for the `extraction` block below exists yet; see rail/README.md for what the app lacks. Field names inside `extraction` and `testCases` are a proposal, not a frozen schema.",
+  "id": "rail:db",
+  "domain": "rail",
+  "version": "2026.10.01",
+  "issuer": {
+    "kind": "rail",
+    "name": "Deutsche Bahn",
+    "keys": { "senderDomains": ["bahn.de"] }
+  },
+  "match": {
+    "markers": ["bahn", "auftragsnummer"],
+    "anchors": ["wie folgt gebucht", "ihre buchung wurde", "vielen dank für ihre buchung"]
+  },
+  "extraction": {
+    "domain": "rail",
+    "booking": {
+      "bookingReference": {
+        "patterns": ["Auftragsnummer:?\\s+([A-Z0-9]{6,14})\\b"]
+      },
+      "tariff": {
+        "patterns": ["^Leistungen[ \\t]*\\r?\\n[ \\t]*([^,\\n]+?)\\s*,\\s*[12]\\.\\s*Klasse"],
+        "flags": "im",
+        "transform": "text"
+      },
+      "travelClass": {
+        "patterns": ["^Leistungen[ \\t]*\\r?\\n[^\\n]*?([12])\\.\\s*Klasse"],
+        "flags": "im",
+        "transform": "railClass"
+      },
+      "price": {
+        "patterns": ["Gesamtpreis(?:es)?\\s+dieser\\s+Reise\\s+in\\s+Höhe\\s+von\\s+([\\d.,]+)\\s*(?:EUR|€|CHF)"],
+        "transform": "money"
+      },
+      "currency": {
+        "patterns": ["Gesamtpreis(?:es)?\\s+dieser\\s+Reise\\s+in\\s+Höhe\\s+von\\s+[\\d.,]+\\s*(EUR|€|CHF)"],
+        "transform": "currency"
+      }
+    },
+    "legs": {
+      "repeat": "^[ \\t]*von[ \\t]+(?<dep>[^\\n]+?),[ \\t]*(?<depDate>\\d{1,2}\\.\\d{1,2}\\.\\d{4})[ \\t]+(?<depTime>\\d{1,2}:\\d{2})[ \\t]*Uhr[^\\n]*\\r?\\n[ \\t]*nach[ \\t]+(?<arr>[^\\n]+?),[ \\t]*(?<arrDate>\\d{1,2}\\.\\d{1,2}\\.\\d{4})[ \\t]+(?<arrTime>\\d{1,2}:\\d{2})[ \\t]*Uhr",
+      "flags": "gim",
+      "fields": {
+        "depStationName": { "group": "dep", "transform": "stationName" },
+        "arrStationName": { "group": "arr", "transform": "stationName" },
+        "departureLocal": { "groups": ["depDate", "depTime"], "transform": "numericDateTime" },
+        "arrivalLocal": { "groups": ["arrDate", "arrTime"], "transform": "numericDateTime" }
+      },
+      "minimum": 1
+    },
+    "required": ["legs"]
+  },
+  "testCases": [
+    {
+      "name": "a two-ride booking confirmation is read leg by leg",
+      "input": {
+        "subject": "Ihre Buchungsbestätigung",
+        "text": "Hier Ihre Buchungsbestätigung.\nHallo Herr Max Mustermann,\nvielen Dank für Ihre Buchung bei der Deutschen Bahn.\nAm 02.03.2030 um 10:15 Uhr wurde der Auftrag mit der\nAuftragsnummer 123456789012 wie folgt gebucht:\nLeistungen\nFlexpreis, 2. Klasse\nvon Köln Hbf, 14.03.2030 08:05 Uhr\nnach Frankfurt(Main)Hbf, 14.03.2030 09:10 Uhr\nvon Frankfurt(Main)Hbf, 14.03.2030 09:30 Uhr\nnach Würzburg Hbf, 14.03.2030 10:42 Uhr\nDie Zahlung des Gesamtpreises dieser Reise in Höhe von 89,90 EUR wird\nper Kreditkarte durchgeführt.\nDiese E-Mail stellt keinen gültigen Fahrausweis dar.\n© DEUTSCHE BAHN AG"
+      },
+      "expected": {
+        "bookingReference": "123456789012",
+        "tariff": "Flexpreis",
+        "travelClass": "second",
+        "price": 89.9,
+        "currency": "EUR",
+        "legs": [
+          {
+            "depStationName": "Köln Hbf",
+            "arrStationName": "Frankfurt(Main)Hbf",
+            "departureLocal": "2030-03-14T08:05",
+            "arrivalLocal": "2030-03-14T09:10"
+          },
+          {
+            "depStationName": "Frankfurt(Main)Hbf",
+            "arrStationName": "Würzburg Hbf",
+            "departureLocal": "2030-03-14T09:30",
+            "arrivalLocal": "2030-03-14T10:42"
+          }
+        ]
+      }
+    },
+    {
+      "name": "a delay notice names an order and a ride but books nothing",
+      "input": {
+        "subject": "Verspätung auf Ihrer Reise",
+        "text": "Ihre Reise hat sich geändert.\nAuftragsnummer 123456789012\nIhr Zug ist voraussichtlich 20 Minuten später.\nvon Köln Hbf, 14.03.2030 08:25 Uhr\nnach Frankfurt(Main)Hbf, 14.03.2030 09:30 Uhr\nDeutsche Bahn"
+      },
+      "expectDecline": true
+    }
+  ]
+}
