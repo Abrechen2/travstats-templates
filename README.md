@@ -1,26 +1,32 @@
-# TravStats Airline Email Templates
+# TravStats Templates
 
-Community-maintained parser templates for [TravStats](https://github.com/Abrechen2/TravStats).
+Parser templates for [TravStats](https://github.com/Abrechen2/TravStats): the
+rules that turn a booking confirmation into a flight, a stay, a cruise or a
+train journey without a language model.
 
-Templates are automatically synced daily into TravStats instances.
+This repository was called `travstats-airline-templates` until 2026-10-01.
+GitHub redirects the old name, and every existing path stays where it is, so
+instances that already sync from here keep receiving updates.
 
 ## Structure
 
 ```
-templates/
-  index.json        ← registry of all templates with versions
-  LH.json           ← Lufthansa (new format, 2025)
-  LH-old.json       ← Lufthansa (Buchungsdetails format)
-  EW.json           ← Eurowings
-  FR.json           ← Ryanair
-  LX.json           ← Swiss
-  OS.json           ← Austrian
-  SN.json           ← Brussels Airlines
-  U2.json           ← easyJet
-  W6.json           ← Wizz Air
+templates/          airline templates, format v1 — what TravStats instances sync today
+  index.json        registry of all v1 templates with versions
+  LH.json, EW.json, FR.json, LX.json, OS.json, SN.json, U2.json, W6.json, LH-old.json
+flight/             reserved for the v2 template format (one envelope for every domain)
+lodging/            reserved for v2
+cruise/             reserved for v2
+rail/               reserved for v2
+CONTRIBUTING.md     how to add or change a template
 ```
 
-## Template Format
+The four domain folders hold only a README for now. No TravStats release reads them
+yet; they fill once the app ships the v2 loader, which validates every
+template against its own test cases before it is used. Until then, airline
+templates go into `templates/` in the v1 format below.
+
+## Template format (v1, airlines)
 
 Each template is a JSON file with this structure:
 
@@ -93,9 +99,5 @@ Converts human-readable dates to ISO 8601:
 
 ## Contributing
 
-1. Fork this repo
-2. Add your template in `templates/XX.json`
-3. Update `templates/index.json` — bump the top-level `version` and add your entry
-4. Open a PR with a test case from a real (anonymized) email
-
-**Please anonymize test cases** — replace real booking codes, names, and ticket numbers with fictional ones.
+See [CONTRIBUTING.md](CONTRIBUTING.md). In short: test cases are **invented**,
+never copied from a real confirmation, and every change bumps `version`.
