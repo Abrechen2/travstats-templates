@@ -1,0 +1,71 @@
+{
+  "$source": "Generated from backend/src/services/lodging/templates/builtins.ts in Abrechen2/TravStats at commit fcd47aca2560c899c75cf1b33adcbbb49504da5a (branch fix/parser-correctness) by scripts/export-lodging.ts. No TravStats release reads this file yet; the app's built-in copy is the one in use.",
+  "id": "lodging:travelclick",
+  "name": "travelclick",
+  "match": {
+    "markers": [
+      "confirmation number"
+    ],
+    "anchors": [
+      "reservations.travelclick.com",
+      "thank you for your reservation at"
+    ]
+  },
+  "classify": {
+    "type": "hotel"
+  },
+  "fields": {
+    "hotelName": {
+      "patterns": [
+        "Thank you for your reservation at\\s+([^!\\n]+)"
+      ],
+      "transform": "text"
+    },
+    "confirmationNumber": {
+      "patterns": [
+        "Confirmation number\\s*:?\\s*(\\d+)"
+      ]
+    },
+    "checkIn": {
+      "patterns": [
+        "Check\\s*in\\s*\\t?\\s*([A-Za-z]+ \\d{1,2}, \\d{4})"
+      ],
+      "transform": "englishDate"
+    },
+    "checkOut": {
+      "patterns": [
+        "Check\\s*out\\s*\\t?\\s*([A-Za-z]+ \\d{1,2}, \\d{4})"
+      ],
+      "transform": "englishDate"
+    },
+    "roomCategory": {
+      "patterns": [
+        "You reserved:\\s*([^\\n]+)"
+      ],
+      "transform": "text"
+    },
+    "totalPrice": {
+      "patterns": [
+        "Total amount including all taxes[^:]*:?\\s*\\t?\\s*[A-Z]{3}\\s*([\\d.,]+)"
+      ],
+      "transform": "money"
+    },
+    "currency": {
+      "patterns": [
+        "Total amount including all taxes[^:]*:?\\s*\\t?\\s*([A-Z]{3})"
+      ],
+      "transform": "currency"
+    },
+    "guests": {
+      "patterns": [
+        "Adults\\s*\\t?\\s*(\\d+)"
+      ],
+      "transform": "integer"
+    }
+  },
+  "required": [
+    "hotelName",
+    "checkIn",
+    "checkOut"
+  ]
+}

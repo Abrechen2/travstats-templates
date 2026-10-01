@@ -1,0 +1,79 @@
+{
+  "$source": "Generated from backend/src/services/lodging/templates/builtins.ts in Abrechen2/TravStats at commit fcd47aca2560c899c75cf1b33adcbbb49504da5a (branch fix/parser-correctness) by scripts/export-lodging.ts. No TravStats release reads this file yet; the app's built-in copy is the one in use.",
+  "id": "lodging:koa",
+  "name": "koa",
+  "match": {
+    "markers": [
+      "koa"
+    ],
+    "anchors": [
+      "reservation confirmation",
+      "kampgrounds of america"
+    ]
+  },
+  "classify": {
+    "type": "campsite",
+    "chainName": "KOA"
+  },
+  "fields": {
+    "hotelName": {
+      "patterns": [
+        "^(.+?)\\s+Reservation Confirmation\\s*#"
+      ],
+      "transform": "text"
+    },
+    "confirmationNumber": {
+      "patterns": [
+        "Reservation Confirmation\\s*#\\s*(\\d+)"
+      ]
+    },
+    "checkIn": {
+      "patterns": [
+        "[A-Za-z]+day,\\s*([A-Za-z]+ \\d{1,2}, \\d{4})\\s*[-–]"
+      ],
+      "transform": "englishDate"
+    },
+    "checkOut": {
+      "patterns": [
+        "[-–]\\s*[A-Za-z]+day,\\s*([A-Za-z]+ \\d{1,2}, \\d{4})"
+      ],
+      "transform": "englishDate"
+    },
+    "totalPrice": {
+      "patterns": [
+        "Estimated Total For Your Stay\\*?\\s*\\t?\\s*[^\\d]*([\\d.,]+)"
+      ],
+      "transform": "money"
+    },
+    "currency": {
+      "patterns": [
+        "Estimated Total For Your Stay\\*?[^(]*\\(([A-Z]{3})\\)"
+      ],
+      "transform": "currency"
+    },
+    "pricePerNight": {
+      "patterns": [
+        "\\$\\s*([\\d.,]+)\\s*/\\s*Night"
+      ],
+      "transform": "money"
+    },
+    "roomCategory": {
+      "patterns": [
+        "Your Campsite:[ \\t]*\\r?\\n[ \\t]*(.+)"
+      ],
+      "flags": "i",
+      "transform": "text"
+    },
+    "guests": {
+      "patterns": [
+        "(\\d+)\\s+Adults?"
+      ],
+      "transform": "integer"
+    }
+  },
+  "required": [
+    "hotelName",
+    "checkIn",
+    "checkOut"
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "$source": "Generated from backend/src/services/lodging/templates/builtins.ts in Abrechen2/TravStats at commit fcd47aca2560c899c75cf1b33adcbbb49504da5a (branch fix/parser-correctness) by scripts/export-lodging.ts. No TravStats release reads this file yet; the app's built-in copy is the one in use.",
+  "id": "lodging:check24",
+  "name": "check24",
+  "match": {
+    "markers": [
+      "check24"
+    ],
+    "anchors": [
+      "buchungsinformationen",
+      "buchungsnummer"
+    ]
+  },
+  "labels": [
+    "Buchungsnummer",
+    "PIN-Code",
+    "Anreise",
+    "Abreise",
+    "Anzahl der Gäste",
+    "Zimmername",
+    "Zimmerkategorie",
+    "Verpflegung",
+    "Zahlungsart",
+    "Zahlung beim Buchen",
+    "Belastung durch",
+    "Buchungspreis",
+    "Hinweis zu Ihrer Zahlung",
+    "Buchungsinformationen",
+    "Kontakt zur Unterkunft"
+  ],
+  "classify": {
+    "type": "hotel"
+  },
+  "fields": {
+    "hotelName": {
+      "patterns": [
+        "Buchungsbestätigung\\s*\"([^\"]+)\""
+      ],
+      "transform": "text"
+    },
+    "confirmationNumber": {
+      "stacked": "Buchungsnummer",
+      "transform": "digits"
+    },
+    "checkIn": {
+      "stacked": "Anreise",
+      "dropLeadingWord": true,
+      "transform": "germanDate"
+    },
+    "checkOut": {
+      "stacked": "Abreise",
+      "dropLeadingWord": true,
+      "transform": "germanDate"
+    },
+    "totalPrice": {
+      "stacked": "Buchungspreis",
+      "transform": "money"
+    },
+    "currency": {
+      "stacked": "Buchungspreis",
+      "transform": "currency"
+    },
+    "roomCategory": {
+      "stacked": "Zimmername",
+      "transform": "text"
+    },
+    "guests": {
+      "stacked": "Anzahl der Gäste",
+      "transform": "integer"
+    },
+    "address": {
+      "patterns": [
+        "\\n([^\\n,]+),\\s*\\d{5}\\s+[^,\\n]+,\\s*[A-Za-zÄÖÜäöüß ]+\\s*<"
+      ],
+      "transform": "text"
+    },
+    "postcode": {
+      "patterns": [
+        ",\\s*(\\d{5})\\s+[^,\\n]+,\\s*[A-Za-zÄÖÜäöüß ]+\\s*<"
+      ]
+    },
+    "city": {
+      "patterns": [
+        ",\\s*\\d{5}\\s+([^,\\n]+),\\s*[A-Za-zÄÖÜäöüß ]+\\s*<"
+      ],
+      "transform": "text"
+    },
+    "country": {
+      "patterns": [
+        ",\\s*\\d{5}\\s+[^,\\n]+,\\s*([A-Za-zÄÖÜäöüß ]+?)\\s*<"
+      ],
+      "transform": "text"
+    }
+  },
+  "required": [
+    "hotelName",
+    "checkIn",
+    "checkOut"
+  ]
+}

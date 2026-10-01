@@ -1,0 +1,96 @@
+{
+  "$source": "Generated from backend/src/services/lodging/templates/builtins.ts in Abrechen2/TravStats at commit fcd47aca2560c899c75cf1b33adcbbb49504da5a (branch fix/parser-correctness) by scripts/export-lodging.ts. No TravStats release reads this file yet; the app's built-in copy is the one in use.",
+  "id": "lodging:accor",
+  "name": "accor",
+  "match": {
+    "markers": [
+      "accor"
+    ],
+    "anchors": [
+      "reservierung nr.",
+      "aufenthaltsdatum"
+    ]
+  },
+  "classify": {
+    "type": "hotel",
+    "chainName": "Accor"
+  },
+  "fields": {
+    "hotelName": {
+      "patterns": [
+        "Buchungsbestätigung:\\s*(.+?)\\s+Nr\\.\\s*[A-Z0-9]+",
+        "Reservierung im ([^\\n.]+)\\."
+      ],
+      "transform": "text"
+    },
+    "confirmationNumber": {
+      "patterns": [
+        "Reservierung Nr\\.\\s*([A-Z0-9]{6,})"
+      ]
+    },
+    "checkIn": {
+      "patterns": [
+        "Aufenthaltsdatum:\\s*vom\\s*(\\d{1,2}\\.\\d{1,2}\\.\\d{4})"
+      ],
+      "transform": "numericDate"
+    },
+    "checkOut": {
+      "patterns": [
+        "Aufenthaltsdatum:[^\\n]*?bis zum\\s*(\\d{1,2}\\.\\d{1,2}\\.\\d{4})"
+      ],
+      "transform": "numericDate"
+    },
+    "totalPrice": {
+      "patterns": [
+        "\\n[ \\t]*Gesamt[ \\t]+([\\d.,]+)[ \\t]*[A-Z]{3}"
+      ],
+      "transform": "money"
+    },
+    "currency": {
+      "patterns": [
+        "\\n[ \\t]*Gesamt[ \\t]+[\\d.,]+[ \\t]*([A-Z]{3})"
+      ],
+      "transform": "currency"
+    },
+    "guests": {
+      "patterns": [
+        "Ihr Aufenthalt:[^\\n]*?(\\d+)\\s+Erwachsene"
+      ],
+      "transform": "integer"
+    },
+    "roomCategory": {
+      "patterns": [
+        "folgenden Namen\\s*:[ \\t\\r]*\\n[^\\n]*\\n[ \\t\\r]*\\n[ \\t]*([^\\n\\r]+)"
+      ],
+      "transform": "text"
+    },
+    "address": {
+      "patterns": [
+        "\\n[ \\t]*([^\\n<]+?)\\s+-\\s+\\d{4,5}\\s+[^\\n<]+?\\s+-\\s+[^\\n<]+?\\s*<"
+      ],
+      "transform": "text"
+    },
+    "postcode": {
+      "patterns": [
+        "\\s-\\s(\\d{4,5})\\s+[^\\n<]+?\\s+-\\s+[^\\n<]+?\\s*<"
+      ]
+    },
+    "city": {
+      "patterns": [
+        "\\s-\\s\\d{4,5}\\s+([^\\n<]+?)\\s+-\\s+[^\\n<]+?\\s*<"
+      ],
+      "transform": "titleCase"
+    },
+    "country": {
+      "patterns": [
+        "\\s-\\s\\d{4,5}\\s+[^\\n<]+?\\s+-\\s+([^\\n<]+?)\\s*<"
+      ],
+      "transform": "text"
+    }
+  },
+  "required": [
+    "hotelName",
+    "checkIn",
+    "checkOut"
+  ]
+}

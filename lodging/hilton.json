@@ -1,0 +1,81 @@
+{
+  "$source": "Generated from backend/src/services/lodging/templates/builtins.ts in Abrechen2/TravStats at commit fcd47aca2560c899c75cf1b33adcbbb49504da5a (branch fix/parser-correctness) by scripts/export-lodging.ts. No TravStats release reads this file yet; the app's built-in copy is the one in use.",
+  "id": "lodging:hilton",
+  "name": "hilton",
+  "match": {
+    "markers": [
+      "hilton"
+    ],
+    "anchors": [
+      "confirmation #",
+      "your plan information"
+    ]
+  },
+  "classify": {
+    "type": "hotel",
+    "chainName": "Hilton"
+  },
+  "fields": {
+    "hotelName": {
+      "patterns": [
+        "^\\s*((?:Hilton|Conrad|Waldorf|DoubleTree|Hampton|Embassy)[^\\n]*)"
+      ],
+      "flags": "im",
+      "transform": "text"
+    },
+    "confirmationNumber": {
+      "patterns": [
+        "Confirmation\\s*#\\s*(\\d+)"
+      ]
+    },
+    "checkIn": {
+      "patterns": [
+        "Check\\s*In:?\\s*\\t?\\s*([A-Za-z]{3,9}\\.?\\s+\\d{1,2})"
+      ],
+      "transform": "englishDate",
+      "yearFrom": "subjectYear"
+    },
+    "checkOut": {
+      "patterns": [
+        "Check\\s*Out:?\\s*\\t?\\s*([A-Za-z]{3,9}\\.?\\s+\\d{1,2})"
+      ],
+      "transform": "englishDate",
+      "yearFrom": "subjectYear"
+    },
+    "roomCategory": {
+      "patterns": [
+        "Your Room Information:?\\s*\\t?\\s*([^\\n,]+)"
+      ],
+      "transform": "text"
+    },
+    "totalPrice": {
+      "patterns": [
+        "Total for Stay\\s*:?\\s*\\t?\\s*([\\d.,]+)"
+      ],
+      "transform": "money"
+    },
+    "currency": {
+      "patterns": [
+        "Total for Stay\\s*:?\\s*\\t?\\s*[\\d.,]+\\s*([A-Z]{3})"
+      ],
+      "transform": "currency"
+    },
+    "pricePerNight": {
+      "patterns": [
+        "Rate per\\s*night\\s*:?\\s*\\t?\\s*([\\d.,]+)"
+      ],
+      "transform": "money"
+    },
+    "guests": {
+      "patterns": [
+        "Guests:?\\s*\\t?\\s*(\\d+)"
+      ],
+      "transform": "integer"
+    }
+  },
+  "required": [
+    "hotelName",
+    "checkIn",
+    "checkOut"
+  ]
+}
