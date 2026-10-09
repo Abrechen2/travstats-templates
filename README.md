@@ -11,21 +11,25 @@ instances that already sync from here keep receiving updates.
 ## Structure
 
 ```
-templates/          airline templates, format v1 — what TravStats instances sync today
-  index.json        registry of all v1 templates with versions
-  LH.json, EW.json, FR.json, LX.json, OS.json, SN.json, U2.json, W6.json, LH-old.json
-flight/             v2, empty: airline templates stay in templates/ until v2 ships
-lodging/            v2 preview: koa, hilton, travelclick, check24, accor — exported from the app
+index.json          registry of every v2 template: { version: 2, templates: [{ id, domain, version, path }] }
+flight/             v2: LH-old, LH, 4U, EK, EK-old, AB
+lodging/            v2: koa, hilton, travelclick, check24, accor, hrs, nh, armani, bookingcom-legacy
 cruise/             v2, empty: AIDA and TUI are TypeScript readers inside the app
-rail/               v2 draft: db.json (Deutsche Bahn), the first file in the v2 envelope
-scripts/            authoring tools (export-lodging.ts); never needed at runtime
+rail/               v2 draft: db.json (Deutsche Bahn) — not in index.json, its extraction is not v2 yet
+templates/          airline templates, format v1 — what older TravStats releases sync
+  index.json        registry of all v1 templates with versions (unchanged by v2)
+  LH.json, EW.json, FR.json, LX.json, OS.json, SN.json, U2.json, W6.json, LH-old.json
 CONTRIBUTING.md     how to add or change a template
 ```
 
-No TravStats release reads the four domain folders yet. They fill once the app
-ships the v2 loader, which validates every template against its own test cases
-before it is used. Each folder's README says what is in it and why. Until then,
-airline templates go into `templates/` in the v1 format below.
+Since TravStats plan 2026-10-09 P4a the app has no issuer reader compiled in:
+every hotel chain, portal and airline it reads without a language model is a
+v2 file in `flight/` or `lodging/`. A TravStats release bundles a copy of these
+files; an instance replaces a bundled file with a newer version from this
+repository once that version validates and passes its own test cases. Each
+folder's README says what is in it and why. New templates are v2 — see
+[CONTRIBUTING.md](CONTRIBUTING.md#5-format-v2-every-domain). The v1 format below
+stays documented for the releases that still read only `templates/`.
 
 ## Template format (v1, airlines)
 

@@ -1,31 +1,54 @@
 # flight/
 
-Reserved for v2 templates that read flights. No TravStats release reads this
-folder yet — see [CONTRIBUTING.md](../CONTRIBUTING.md#5-hotels-cruises-trains--format-v2).
+v2 templates that read airline confirmations. Every file is listed in the root
+[`index.json`](../index.json); the order there is the order the app tries them.
 
-**The airline templates live in [`templates/`](../templates/) in the v1 format**,
-and stay there until the app ships the v2 loader. Every installed instance syncs
-`templates/index.json` and the files it lists; nothing here is copied from them,
-so there is exactly one live copy of each airline.
-
-## Airlines that v1 cannot read
-
-Measured on 2026-10-01 against real confirmations (kept private; nothing from
-them is in this repository). Each needs something the v1 format or the app's v1
-engine does not have, so no v1 template was published for it:
-
-| Confirmation | What v1 lacks |
+| File | Reads |
 |---|---|
-| Emirates booking confirmation (German, `emirates.email`) | Its dates carry a two-digit year ("05. Nov. 27"). The v1 `parseIso` transform only understands four-digit years, so the date would reach TravStats unconverted. Today the app's generic reader gets that date right (but not the route or the time), so a template would make the date worse. |
-| Amadeus "Electronic Ticket Receipt" (Egyptair and many other carriers, `eticket@amadeus.com`) | Airports are printed as city names only ("PARIS CHARLES DE GAULLE"), and dates without a year ("12Jun(Sat)"). v1 has no airport-name lookup and no way to borrow the year from the issue date. |
-| Tour-operator invoices with a flight table (several airlines per document, PDF) | Two-digit years ("08.07.27"), one table mixing several carriers, and the table sits in a PDF attachment that the flight parser does not receive today. |
+| `LH-old.json` | Lufthansa "Buchungsdetails" mails (one block per leg, "Uhr +1" arrivals) |
+| `LH.json` | Lufthansa confirmations, including the 2025 "Buchungsübersicht" layout |
+| `4U.json` | Germanwings confirmations 2007–2015 (city names → airport codes) |
+| `EK.json` | Emirates confirmations, 2018+ layout (two-digit years) |
+| `EK-old.json` | Emirates confirmations, 2014/2015 layout |
+| `AB.json` | Air Berlin PDF invoices (the year of a leg borrowed from the header) |
 
-There is a second reason a v1 file for a **new** airline would not help yet:
-the app decides which template a mail gets from a detection list compiled into
-the app (`backend/src/services/parsers/templates/detector.ts`), not from a
-template's `from` and `subject` fields. A template for an airline that list does
-not name is downloaded but never used. v1 updates therefore only reach the
-airlines already in that list.
+The id's slug (`flight:LH-old`) is what the app records as `parserTemplate` —
+the same key the v1 template of that name had.
 
-All three cases are planned for the v2 format and engine (TravStats parser-system
-design, packages 2 and 3).
+## How a flight template is shaped
+
+One `legs` repeat in `split` mode, one item per flight leg:
+
+- `prependHeader: true` — the text before the first leg (booking code, ticket
+  number, the year a leg line leaves out) is readable from every leg;
+- `wholeTextUnlessSplit: true` — a one-leg mail without the separator is read
+  whole;
+- `required: ["flightNumber"]` inside the repeat — one leg without its number
+  and the template declines the whole mail, rather than answer one leg of two;
+- `match.notBookingIf` — the airline's own cancellations and receipts; a hit
+  answers "not a booking" and the app reads nothing from the mail.
+
+Leg value names: `flightNumber`, `pnr`, `departureTime`, `arrivalTime`
+(`YYYY-MM-DDTHH:MM`, usually `format: "{1}T{2}"` plus the `dateTime`
+transform), `departureCode`, `arrivalCode`, `seat`, `seatClass`, `price`,
+`currency`, `taxes`, `fees`, `baggage`, `frequentFlyer`, `ticketNumber`,
+`bookingClassLetter`, `terminal`, `gate`, and `arrivalDayOffset` (the "+1"
+after a red-eye's arrival, `dayOffset` transform). A value the app cannot use —
+a departure that is not a local date-time — makes it decline the reading.
+
+## Relation to `templates/` (v1)
+
+The six files here replace the app's compiled-in copies of LH and LH-old and of
+four airlines that were never in this repository (4U, EK, EK-old, AB). From the
+app release that ships plan 2026-10-09 P4a, a v1 template whose name a v2 file
+carries is never consulted. `templates/` stays untouched for older releases. Its
+HTML-selector templates (EW, FR, LX, OS, SN, U2, W6) carry no test cases and
+have no v2 file yet: one needs invented test cases that prove it reads a real
+layout, which nobody could write for selectors guessed without a sample mail.
+
+## Still out of reach
+
+| Confirmation | What is missing |
+|---|---|
+| Amadeus "Electronic Ticket Receipt" (Egyptair and many other carriers) | Dates without a year ("12Jun(Sat)") that must borrow the issue date's year, and airport names outside the app's lookup table. |
+| Tour-operator invoices with a flight table (several carriers per document) | The `package` domain (later packages of plan 2026-10-09). |
