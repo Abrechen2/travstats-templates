@@ -13,18 +13,23 @@ instances that already sync from here keep receiving updates.
 ```
 index.json          registry of every v2 template: { version: 2, templates: [{ id, domain, version, path }] }
 flight/             v2: LH-old, LH, 4U, EK, EK-old, AB
-lodging/            v2: koa, hilton, travelclick, check24, accor, hrs, nh, armani, bookingcom-legacy
-cruise/             v2, empty: AIDA and TUI are TypeScript readers inside the app
-rail/               v2 draft: db.json (Deutsche Bahn) — not in index.json, its extraction is not v2 yet
+lodging/            v2: booking.com, koa, hilton, travelclick, check24, accor, hrs, nh, armani, bookingcom-legacy
+cruise/             v2: tui-cruises-confirmation
+rail/               v2: db-confirmation, db-online-ticket, db-postal-order, db-connection-info, db-order-facts, db-reservation-ticket, db-reservation-mail
+rental/             v2: sixt-confirmation, sixt-invoice
+package/            v2: berge-meer-invoice, berge-meer-documents
+scripts/validate.mjs  CI check: every indexed file valid, every test case passing (runs the app's engine)
 templates/          airline templates, format v1 — what older TravStats releases sync
   index.json        registry of all v1 templates with versions (unchanged by v2)
   LH.json, EW.json, FR.json, LX.json, OS.json, SN.json, U2.json, W6.json, LH-old.json
 CONTRIBUTING.md     how to add or change a template
 ```
 
-Since TravStats plan 2026-10-09 P4a the app has no issuer reader compiled in:
-every hotel chain, portal and airline it reads without a language model is a
-v2 file in `flight/` or `lodging/`. A TravStats release bundles a copy of these
+Since TravStats plan 2026-10-09 P4a/P4b the app has no issuer reader compiled
+in: every airline, hotel chain, portal, cruise line, rail operator, rental
+provider and tour operator it reads without a language model is a v2 file
+here. Only generic readers stay in the app (boarding-pass barcodes, structured
+mail data, calendar files, the language model, the template engine). A TravStats release bundles a copy of these
 files; an instance replaces a bundled file with a newer version from this
 repository once that version validates and passes its own test cases. Each
 folder's README says what is in it and why. New templates are v2 — see

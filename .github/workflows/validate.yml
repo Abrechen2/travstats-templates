@@ -1,0 +1,25 @@
+name: validate
+
+# Every indexed v2 template must validate and pass its own test cases on the
+# TravStats engine that will load it (scripts/validate.mjs).
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Abrechen2/TravStats
+          path: travstats-app
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+        working-directory: travstats-app/backend
+      - run: node scripts/validate.mjs
+        env:
+          TRAVSTATS_BACKEND: travstats-app/backend

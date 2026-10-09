@@ -73,26 +73,67 @@ same here and in the app.
 ```
 
 - **`match`**: every marker AND at least one anchor must appear (case-insensitive)
-  in sender, subject and body. `notBookingIf` regexes mark the issuer's own
-  cancellations and receipts — a hit answers "not a booking".
-- **`extraction.fields`**: one value per name. A rule has exactly one of
-  `patterns` (regexes tried in order; the value is group `v`, else group 1;
-  default flags `im`), `value` (a constant) or `stacked` (a label on a line of
-  its own; the value is the next line with content, unless it is one of the
-  extraction's `labels`). Options: `format` (`"{1}T{2}"`, `"{day}.{month}.{year}T{time}"`
-  — assemble a value from several groups), `yearFrom` (a sibling field supplies
-  the year of a year-less date), `transform` (one name or a list, applied in
-  order).
-- **`extraction.repeats`**: an array of items per name, `matchAll` (one item per
-  match) or `split` (one item per block). Split options: `prependHeader`,
-  `wholeTextUnlessSplit`, `within` (`startAfter`, `endBefore`, `lenient`), and
-  `required` — fields every item must carry.
+  in sender, subject and body. Regex conditions take a string (flags `im`) or
+  `{ "pattern", "flags", "in" }` (`in`: `from`, `subject` or `text`):
+  `allOf` (all must find something), `anyOf` (at least one — counts like an
+  anchor), `noneOf` (any hit declines: a ticket where you read reservations)
+  and `notBookingIf` (the issuer's own cancellations and receipts — a hit
+  answers "not a booking"). Markers may be empty; anchors and `anyOf` may not
+  both be. At most 10 regexes per list.
+- **`extraction.fields`**: one value per name (at most 60). A rule has exactly
+  one of `patterns` (at most 10 regexes tried in order; the value is group
+  `v`, else group 1; default flags `im`), `value` (a constant) or `stacked` (a
+  label on a line of its own; the value is the next line with content, unless
+  it is one of the extraction's `labels`). Options: `format` (`"{1}T{2}"` —
+  assemble a value from several groups), `yearFrom` (a sibling field supplies
+  the year of a year-less date), `scan` (try every match of a pattern, not only
+  the first, until one survives), `in` (read only the `subject`, `from` or
+  `text`).
+- **Value steps**, on every field, item field, column and computed value, in
+  this order: `replace` (`[pattern, replacement, flags?]` on the raw text),
+  `transform` (one name or a list), `map` (`[pattern, value]`: the first
+  pattern that finds something in the value gives the constant — a string,
+  number or boolean; none → null).
+- **`extraction.repeats`** (at most 20 per scope): an array of items per name,
+  read in order, so a repeat may use the ones above it. Modes:
+  - `matchAll` — one item per match of `pattern`. Item fields take exactly one
+    of `group`, `format` (`"{dep} {time}"`), `value` or `lastBefore` (the last
+    match of another regex before the item: the "Rückfahrt" heading in force),
+    and may add `find` (a regex searched in that text: a train number between
+    two lines).
+  - `split` — one item per block starting at each `splitPattern` match. Options:
+    `prependHeader`, `wholeTextUnlessSplit`, `skipPreamble` (the text before
+    the first block is no item), nested `repeats` (one level: each block reads
+    its own) and `emit` (the repeat's items ARE the named nested repeats'
+    items).
+  - `columns` — a table extracted column by column: each column's `pattern`
+    is matched throughout the scope, item i is the i-th match of every column;
+    unequal columns read NOTHING.
+  - `pairs` — walks an earlier repeat's items: one matching `open` opens a
+    pair (a later one replaces it), the next matching `close` closes it.
+  Every mode: `within` (`startAfter`, `endBefore`, `lenient`), `required`,
+  `minimum`, `zip` (`{ "with": "<earlier repeat>", "strict": true }` merges
+  the i-th item; `strict` only when both have as many), `compute` (a value
+  from `{name}` of the item and `{parent.name}` of the enclosing block or
+  document; a blank placeholder makes it null) and `skipItemsWithout`.
+- **`extraction.preprocess`**: `stripCarriageReturns`, `stripZeroWidth`,
+  `stripLinks`, `collapseSpaces`, `stripLeadingPipe`, `trimLines`,
+  `dropBlankLines` — applied before extraction, never before matching.
 - **Transforms**: `trim`, `text`, `upper`, `lower`, `titleCase`,
-  `capsTitleCase`, `digits`, `firstDigits`, `integer`, `money`, `currency`,
+  `capsTitleCase`, `digits`, `firstDigits`, `integer`, `money`, `amount`,
+  `currency`, `leadingCurrency`, `leadingAmount` ("CHF 292,83", "US$628,70" —
+  a line that is only a currency and an amount; a non-ISO code is no price),
   `date`, `englishDate`, `germanDate`, `numericDate`, `slashDayFirstDate`,
-  `time`, `dateTime`, `dayOffset`, `flightNumber`, `iata`, `airportName`,
+  `dayMonthNear` ("02.05. 2016-05-02" — a day-month dated by a reference),
+  `time`, `dateTime`, `laterClock` ("2026-12-20T22:30 00:05" → next day),
+  `dayOffset`, `flightNumber`, `iata`, `airportName`, `travelClass`,
+  `addressStreet`, `addressPostcode`, `addressCity`, `addressCountry`,
   `dropFirstWord`, `stripTrailingSeparator`, `removeSpaces`. Every transform
   answers null for input it cannot read; it never guesses.
+- **`output`**: options for the domain's consumer (only `lodging` takes one —
+  see [`lodging/README.md`](lodging/README.md#output-lodging)).
+- **Bounds**: every regex runs under the app's time budget; a template that is
+  slow on a document reads nothing from it.
 - **Test cases** are the gate: a template is activated only when every case
   passes — at least one `match` (with `expected` values, compared partially)
   and at least one `decline`.
@@ -101,16 +142,19 @@ same here and in the app.
   together.
 
 What a domain's values mean is listed in each folder's README
-([`flight/`](flight/README.md), [`lodging/`](lodging/README.md)).
+([`flight/`](flight/README.md), [`lodging/`](lodging/README.md),
+[`cruise/`](cruise/README.md), [`rail/`](rail/README.md),
+[`rental/`](rental/README.md), [`package/`](package/README.md)).
 
-To check a template locally, run the app's snapshot sync against your clone,
-from a TravStats checkout's `backend/`:
+To check the repository locally — exactly what CI runs — point the validator
+at a TravStats checkout (its `backend/` with `npm ci` done):
 
 ```bash
-npx tsx scripts/sync-template-snapshot.ts --from <your clone of this repository>
+TRAVSTATS_BACKEND=../TravStats/backend node scripts/validate.mjs
 ```
 
-It validates every file the index names and runs its test cases; on any
-failure it lists them and writes nothing. On success it refreshes that
-checkout's bundled snapshot — discard the change there if you only wanted the
-check.
+It runs the app's `scripts/validate-template-repo.ts` against this clone:
+every file the index names must exist, validate, agree with its index line and
+pass all of its own test cases, and every `.json` in a domain folder must be in
+the index. Nothing is written. To refresh a TravStats checkout's bundled copy
+afterwards, run there `npx tsx scripts/sync-template-snapshot.ts --from <this clone>`.

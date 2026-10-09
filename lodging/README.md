@@ -6,6 +6,7 @@ the app tries them.
 
 | File | Reads | Markets |
 |---|---|---|
+| `bookingcom.json` (`lodging:booking.com`) | Booking.com confirmations of today, both layouts (inline and stacked labels), changed bookings included (German) | DE |
 | `koa.json` | KOA campground reservation confirmations (English) | US, CA |
 | `hilton.json` | Hilton-family hotel confirmations (English; the year comes from the subject) | global |
 | `travelclick.json` | Hotels booking through the TravelClick engine (English) | global |
@@ -43,9 +44,22 @@ constants `type` (`hotel`, `campsite`, `guesthouse`, `apartment`, `hostel`) and
 reading rather than guess; any other name (a helper such as `subjectYear`) is
 ignored by the app.
 
-## Not here, on purpose
+## Booking.com
 
-Booking.com's current (stacked) confirmations are read by TypeScript code in the
-app (`bookingComTemplate.ts`): address segmentation, two layouts and currency
-grammar that a declarative template cannot express. It stays in the app as a
-generic reader.
+`bookingcom.json` is first in the index, so it keeps the priority the compiled
+reader had (P4b moved it here): the older one-line layout and the declarative
+readers take only what it declines. Its id `lodging:booking.com` keeps the
+`parserTemplate` value "booking.com". It shows the constructs P4a still lacked:
+one pattern per label covers both layouts, the address line is split by the
+`address*` transforms, the total uses `leadingAmount` / `leadingCurrency` with
+`scan`, and its `output` block keeps the reader's confidence (95 / 80) and
+reports a missing room. Nothing Booking.com-specific is left in the app.
+
+## `output` (lodging)
+
+- `report`: the fields whose absence `missing` names, in order (default `city`,
+  `totalPrice`, `confirmationNumber`).
+- `confidence`: `{ "complete": 0–100, "partial": 0–100 }` (default 75 / 65).
+
+A lodging template may also set `nights` (the printed night count; it wins
+over the date span).
