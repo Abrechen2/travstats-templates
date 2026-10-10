@@ -111,6 +111,12 @@ same here and in the app.
     unequal columns read NOTHING.
   - `pairs` — walks an earlier repeat's items: one matching `open` opens a
     pair (a later one replaces it), the next matching `close` closes it.
+  - `lines` — one item printed over consecutive LINES (an itinerary day above
+    its port): `rowLines` holds 2–4 patterns, each matched against exactly one
+    line (lines over 500 characters are never matched); an item is a run of
+    lines matching them in order, blank lines between stepped over with
+    `skipBlankLines`. Item fields read the rows' NAMED groups, unique across
+    the row. A row that breaks off is no item.
   Every mode: `within` (`startAfter`, `endBefore`, `lenient`), `required`,
   `minimum`, `zip` (`{ "with": "<earlier repeat>", "strict": true }` merges
   the i-th item; `strict` only when both have as many), `compute` (a value
@@ -123,7 +129,9 @@ same here and in the app.
   `capsTitleCase`, `digits`, `firstDigits`, `integer`, `money`, `amount`,
   `currency`, `leadingCurrency`, `leadingAmount` ("CHF 292,83", "US$628,70" —
   a line that is only a currency and an amount; a non-ISO code is no price),
-  `date`, `englishDate`, `germanDate`, `numericDate`, `slashDayFirstDate`,
+  `date`, `dateOrMonthDay` (a full date, or `--MM-DD` for a day printed
+  without a year; the domain consumer dates it or leaves it undated),
+  `englishDate`, `germanDate`, `numericDate`, `slashDayFirstDate`,
   `dayMonthNear` ("02.05. 2016-05-02" — a day-month dated by a reference),
   `time`, `dateTime`, `laterClock` ("2026-12-20T22:30 00:05" → next day),
   `dayOffset`, `flightNumber`, `iata`, `airportName`, `travelClass`,

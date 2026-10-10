@@ -27,7 +27,11 @@ A `cruises` repeat, one item per voyage, each with a nested `stops` repeat:
   `cabinType` (`inside` / `oceanview` / `balcony` / `suite`, or the category
   text the app maps: "Junior Suite Balkon" → suite), `deck` (integer),
   `bookingReference`, `price` (number), `currency` (ISO code);
-- stop: `date`, `portName`, `isAtSea` (`true` for a sea day — map "Seetag").
+- stop: `date` (`YYYY-MM-DD`, or `--MM-DD` from the `dateOrMonthDay`
+  transform when the itinerary prints no year — the app dates it from the
+  voyage's `startDate`, rolling over New Year, and leaves it undated without
+  one), `portName`, `isAtSea` (`true` for a sea day — map "Seetag"). A day
+  printed above its port is read with a `lines` repeat.
 
 Any voyage value may also be a document-level field; it then applies to every
 voyage that does not state its own (a booking number printed once). What the
