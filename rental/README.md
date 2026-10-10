@@ -27,8 +27,11 @@ refusals and the cancellation reader.
   `inclusions` repeat (`code`: comma-separated codes the app knows, e.g.
   `roadside`, `cdw,tp`) and an `airportWords` repeat (`word`).
 - invoice: `confirmationNumber`, `agreementNumber`, `invoiceNumber`,
-  `actualPickupLocal`, `actualReturnLocal`, `finalAmount`, `finalCurrency`, and
-  a `vehicles` repeat (`odometerOut`, `odometerIn`, `driven`, `model`). The app
+  `actualPickupLocal`, `actualReturnLocal`, `finalAmount`, `finalCurrency`,
+  a `vehicles` repeat (`odometerOut`, `odometerIn`, `driven`, `model`) and a
+  `fees` repeat (`label`, `amount` — the single extra charges the invoice lists,
+  in the invoice's currency; the app shows each for review and never adds them
+  to the final amount, which already contains them). The app
   keeps a vehicle row only when km in − km out = driven, sums the driven km,
   and gives an odometer pair only for a single car.
 
