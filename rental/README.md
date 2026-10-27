@@ -5,8 +5,8 @@ v2 templates that read rental-car documents. Every file is listed in the root
 
 | File | `kind` | Reads | Markets |
 |---|---|---|---|
-| `sixt-confirmation.json` | confirmation | Sixt booking confirmations, both layouts (2024–2025 "Abholung: X" then the date; 2026 the date then "Abholung in X") | DE |
-| `sixt-invoice.json` | invoice | Sixt's final invoice PDF (`RENTAL_INV`), labels in the station's language | DE, FR, NL, BE |
+| `sixt-confirmation.json` | confirmation | Sixt booking confirmations, both layouts (2024–2025 "Abholung: X" then the date; 2026 the date then "Abholung in X") | DE, LU |
+| `sixt-invoice.json` | invoice | Sixt's final invoice PDF (`RENTAL_INV`), labels in the station's language | DE, FR, NL, BE, LU |
 
 ## Where they come from
 
